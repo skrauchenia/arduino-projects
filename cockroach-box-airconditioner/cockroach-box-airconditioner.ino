@@ -1,16 +1,39 @@
-#define relay_pin 2
-#define fan_on_duration 300000
-#define fan_off_duration 3600000
+#include "timer-api.h"
 
-unsigned long last_run_time;
+
 
 void setup() {
-  pinMode(relay_pin, OUTPUT);
+  // частота=1Гц, период=1с
+  timer_init_ISR_1Hz(TIMER_DEFAULT);
+
+  pinMode(2, OUTPUT);
+  digitalWrite(2, HIGH);
 }
 
 void loop() {
-  digitalWrite(relay_pin, 1);
-  delay(fan_on_duration);
-  digitalWrite(relay_pin, 0);
-  delay(fan_off_duration);
+  
+}
+
+void timer_handle_interrupts(int timer) {
+  static int fanOnSeconds = 60;
+  static int fanOffSeconds = 1200;
+  static boolean fanTurnedOn = true;
+
+  if (fanTurnedOn) {
+    if (fanOnSeconds == 0) {
+      digitalWrite(2, LOW);
+      fanTurnedOn = false;
+      fanOnSeconds = 60;
+    } else {
+      fanOnSeconds--;
+    }
+  } else {
+    if (fanOffSeconds == 0) {
+      digitalWrite(2, HIGH);
+      fanTurnedOn = true;
+      fanOffSeconds = 1200;
+    } else {
+      fanOffSeconds--;
+    }
+  }
 }
